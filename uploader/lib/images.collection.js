@@ -7,15 +7,13 @@ const Images = new FilesCollection({
     collectionName: 'Images',
     allowClientCode: false, // Disallow remove files from Client
     onBeforeUpload: function (file) {
-        // Allow upload files under 10MB, and only in png/jpg/jpeg formats
         if (Meteor.isServer){
             console.info("file", file);
-            if (file.meta && file.meta.appid) {
-                var authorized = apps.checkIfRegistered(file.meta.appid);
-                if (!authorized) return "Please pass a valid 'appid' in 'meta.appid'";
-            }
+            var authorized = false ;
+            if (file.meta && file.meta.appid) authorized = apps.checkIfRegistered(file.meta.appid);
+            if (!authorized) return "Please pass a valid 'appid' in 'meta.appid'";
         }
-        if (file.size <= 1024 * 1024 * 10 && /png|jpe?g/i.test(file.extension)) {
+        if (file.size <= 1024 * 1024 * 10 && /pdf|png|jpe?g/i.test(file.extension)) {
             return true;
         }
         return 'Please upload image, with size equal or less than 10MB';
@@ -26,7 +24,8 @@ if (Meteor.isServer) {
     Images.denyClient();
     Meteor.publish('files.images.all', function (params) {
         if (!(params && params.appid)) return;
-        return Images.find({'meta.appid': params.appid}).cursor;
+        var ret  = Images.find({'meta.appid': params.appid});
+        return ret.cursor ;
     });
 }
 
